@@ -62,5 +62,6 @@ fi
 run_test "Kinesis end-to-end test" "$END_TO_END_DIR/test-scripts/test_streaming_kinesis.sh"
 run_test "class loading end-to-end test" "$END_TO_END_DIR/test-scripts/test_streaming_classloader.sh"
 run_test "Distributed cache end-to-end test" "$END_TO_END_DIR/test-scripts/test_streaming_distributed_cache_via_blob.sh"
+run_test "End-to-end test for hive connector with Docker" "$END_TO_END_DIR/test-scripts/test_connectors_hive.sh"
 printf "\n[PASS] All tests passed\n"
 exit 0
