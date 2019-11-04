@@ -425,12 +425,12 @@ public class TableEnvironmentImpl implements TableEnvironment {
 	}
 
 	@Override
-	public Table sqlQuery(String query) {
+	public Table fromQuery(String query) {
 		List<Operation> operations = parser.parse(query);
 
 		if (operations.size() != 1) {
 			throw new ValidationException(
-				"Unsupported SQL query! sqlQuery() only accepts a single SQL query.");
+					"Unsupported SQL query! sqlQuery() only accepts a single SQL query.");
 		}
 
 		Operation operation = operations.get(0);
@@ -439,9 +439,14 @@ public class TableEnvironmentImpl implements TableEnvironment {
 			return createTable((QueryOperation) operation);
 		} else {
 			throw new ValidationException(
-				"Unsupported SQL query! sqlQuery() only accepts a single SQL query of type " +
+					"Unsupported SQL query! sqlQuery() only accepts a single SQL query of type " +
 					"SELECT, UNION, INTERSECT, EXCEPT, VALUES, and ORDER_BY.");
 		}
+	}
+
+	@Override
+	public Table sqlQuery(String query) {
+		return fromQuery(query);
 	}
 
 	@Override

@@ -487,6 +487,29 @@ public interface TableEnvironment {
 	 * @param query The SQL query to evaluate.
 	 * @return The result of the query as Table
 	 */
+	Table fromQuery(String query);
+
+	/**
+	 * Evaluates a SQL query on registered tables and retrieves the result as a {@link Table}.
+	 *
+	 * <p>All tables referenced by the query must be registered in the TableEnvironment.
+	 * A {@link Table} is automatically registered when its {@link Table#toString()} method is
+	 * called, for example when it is embedded into a String.
+	 * Hence, SQL queries can directly reference a {@link Table} as follows:
+	 *
+	 * <pre>
+	 * {@code
+	 *   Table table = ...;
+	 *   String tableName = table.toString();
+	 *   // the table is not registered to the table environment
+	 *   tEnv.sqlQuery("SELECT * FROM tableName");
+	 * }
+	 * </pre>
+	 *
+	 * @param query The SQL query to evaluate.
+	 * @return The result of the query as Table
+	 * @deprecated use {@link #fromQuery(String)}
+	 */
 	Table sqlQuery(String query);
 
 	/**

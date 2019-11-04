@@ -448,7 +448,7 @@ abstract class TableEnvImpl(
     planner.getCompletionHints(statement, position)
   }
 
-  override def sqlQuery(query: String): Table = {
+  override def fromQuery(query: String): Table = {
     val operations = parser.parse(query)
 
     if (operations.size != 1) throw new ValidationException(
@@ -462,6 +462,8 @@ abstract class TableEnvImpl(
           "SELECT, UNION, INTERSECT, EXCEPT, VALUES, and ORDER_BY.")
     }
   }
+
+  override def sqlQuery(query: String): Table = fromQuery(query)
 
   override def sqlUpdate(stmt: String): Unit = {
     val operations = parser.parse(stmt)
