@@ -23,12 +23,15 @@ import org.apache.flink.annotation.VisibleForTesting;
 import org.apache.flink.api.common.JobExecutionResult;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.api.dag.Transformation;
+import org.apache.flink.table.api.DataTypes;
 import org.apache.flink.table.api.EnvironmentSettings;
+import org.apache.flink.table.api.ResultTable;
 import org.apache.flink.table.api.SqlParserException;
 import org.apache.flink.table.api.Table;
 import org.apache.flink.table.api.TableConfig;
 import org.apache.flink.table.api.TableEnvironment;
 import org.apache.flink.table.api.TableException;
+import org.apache.flink.table.api.TableSchema;
 import org.apache.flink.table.api.ValidationException;
 import org.apache.flink.table.catalog.Catalog;
 import org.apache.flink.table.catalog.CatalogBaseTable;
@@ -66,6 +69,7 @@ import org.apache.flink.table.operations.utils.OperationTreeBuilder;
 import org.apache.flink.table.sinks.TableSink;
 import org.apache.flink.table.sources.TableSource;
 import org.apache.flink.table.sources.TableSourceValidation;
+import org.apache.flink.types.Row;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -482,6 +486,74 @@ public class TableEnvironmentImpl implements TableEnvironment {
 		} else {
 			throw new TableException(
 				"Unsupported SQL query! sqlUpdate() only accepts a single SQL statements of " +
+					"type INSERT, CREATE TABLE, DROP TABLE");
+		}
+	}
+
+	@Override
+	public Optional<ResultTable> executeSql(String stmt) throws Exception {
+		List<Operation> operations = parser.parse(stmt);
+
+		if (operations.size() != 1) {
+			throw new TableException(
+					"Unsupported SQL query! sqlUpdate() only accepts a single SQL statement of type " +
+					"INSERT, CREATE TABLE, DROP TABLE, SELECT");
+		}
+
+		Operation operation = operations.get(0);
+
+		if (operation instanceof CatalogSinkModifyOperation) {
+			List<ModifyOperation> modifyOperations = Collections.singletonList((ModifyOperation) operation);
+			List<Transformation<?>> transformations = planner.translate(modifyOperations);
+			execEnv.apply(transformations);
+			//todo: figure how to set a jobName properly.
+			execEnv.execute("Test-job-Name");
+			return Optional.empty();
+		} else if (operation instanceof CreateTableOperation) {
+			CreateTableOperation createTableOperation = (CreateTableOperation) operation;
+			catalogManager.createTable(
+					createTableOperation.getCatalogTable(),
+					createTableOperation.getTableIdentifier(),
+					createTableOperation.isIgnoreIfExists());
+			return Optional.of(new ResultTable() {
+				@Override
+				public TableSchema getResultSchema() {
+					return TableSchema.builder()
+								.field("result", DataTypes.STRING()).build();
+				}
+
+				@Override
+				public Iterable<Row> getResultRows() {
+					Row row = new Row(1);
+					row.setField(0, String.format("Table %s create success!", createTableOperation.getTableIdentifier().toString()));
+					return Collections.singletonList(row);
+				}
+			});
+		} else if (operation instanceof DropTableOperation) {
+			DropTableOperation dropTableOperation = (DropTableOperation) operation;
+			catalogManager.dropTable(
+					dropTableOperation.getTableIdentifier(),
+					dropTableOperation.isIfExists());
+			return Optional.of(new ResultTable() {
+				@Override
+				public TableSchema getResultSchema() {
+					return TableSchema.builder()
+									  .field("result", DataTypes.STRING()).build();
+				}
+
+				@Override
+				public Iterable<Row> getResultRows() {
+					Row row = new Row(1);
+					row.setField(0, String.format("Table %s drop success!", dropTableOperation.getTableIdentifier().toString()));
+					return Collections.singletonList(row);
+				}
+			});
+		} else if (operation instanceof QueryOperation) {
+			throw new TableException(
+					"Unsupported QueryOperation for now!");
+		}else {
+			throw new TableException(
+					"Unsupported SQL query! sqlUpdate() only accepts a single SQL statements of " +
 					"type INSERT, CREATE TABLE, DROP TABLE");
 		}
 	}
