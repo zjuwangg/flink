@@ -32,6 +32,7 @@
     "org.apache.flink.sql.parser.ddl.SqlTableColumn",
     "org.apache.flink.sql.parser.ddl.SqlTableOption",
     "org.apache.flink.sql.parser.ddl.SqlWatermark",
+    "org.apache.flink.sql.parser.ddl.SqlShowTables",
     "org.apache.flink.sql.parser.dml.RichSqlInsert",
     "org.apache.flink.sql.parser.dml.RichSqlInsertKeyword",
     "org.apache.flink.sql.parser.type.ExtendedSqlBasicTypeNameSpec",
@@ -55,7 +56,8 @@
     "WATERMARK",
     "OVERWRITE",
     "STRING",
-    "BYTES"
+    "BYTES",
+    "TABLES"
   ]
 
   # List of keywords from "keywords" section that are not reserved.
@@ -325,6 +327,7 @@
     "STYLE"
     "SUBCLASS_ORIGIN"
     "SUBSTITUTE"
+    "TABLES"
     "TABLE_NAME"
     "TEMPORARY"
     "TIES"
@@ -373,7 +376,8 @@
   # Return type of method implementation should be 'SqlNode'.
   # Example: SqlShowDatabases(), SqlShowTables().
   statementParserMethods: [
-    "RichSqlInsert()"
+    "RichSqlInsert()",
+    "SqlShowTables()"
   ]
 
   # List of methods for parsing custom literals.

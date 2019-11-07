@@ -622,6 +622,12 @@ public class FlinkSqlParserImplTest extends SqlParserTest {
 		sql(sql).node(new ValidationMatcher());
 	}
 
+	@Test
+	public void testShowTables() {
+		check("show tables ",
+				"SHOW TABLES");
+	}
+
 	/** Matcher that invokes the #validate() of the {@link ExtendedSqlNode} instance. **/
 	private static class ValidationMatcher extends BaseMatcher<SqlNode> {
 		private String expectedColumnSql;

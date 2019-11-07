@@ -618,3 +618,13 @@ SqlTypeNameSpec ExtendedSqlRowTypeName() :
             unparseAsStandard);
     }
 }
+SqlNode SqlShowTables() :
+{
+}
+{
+    <SHOW> <TABLES>
+    {
+        return new SqlShowTables(getPos());
+    }
+}
+

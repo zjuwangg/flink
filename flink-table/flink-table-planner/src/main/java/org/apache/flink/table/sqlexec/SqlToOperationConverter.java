@@ -20,6 +20,7 @@ package org.apache.flink.table.sqlexec;
 
 import org.apache.flink.sql.parser.ddl.SqlCreateTable;
 import org.apache.flink.sql.parser.ddl.SqlDropTable;
+import org.apache.flink.sql.parser.ddl.SqlShowTables;
 import org.apache.flink.sql.parser.ddl.SqlTableColumn;
 import org.apache.flink.sql.parser.ddl.SqlTableOption;
 import org.apache.flink.sql.parser.dml.RichSqlInsert;
@@ -38,6 +39,7 @@ import org.apache.flink.table.operations.Operation;
 import org.apache.flink.table.operations.PlannerQueryOperation;
 import org.apache.flink.table.operations.ddl.CreateTableOperation;
 import org.apache.flink.table.operations.ddl.DropTableOperation;
+import org.apache.flink.table.operations.ddl.ShowTablesOperation;
 import org.apache.flink.table.types.utils.TypeConversions;
 
 import org.apache.calcite.rel.RelRoot;
@@ -102,7 +104,9 @@ public class SqlToOperationConverter {
 				throw new ValidationException("Partial inserts are not supported");
 			}
 			return Optional.of(converter.convertSqlInsert((RichSqlInsert) validated));
-		} else if (validated.getKind().belongsTo(SqlKind.QUERY)) {
+		} else if (validated instanceof SqlShowTables) {
+			return Optional.of(converter.convertSqlShowTables());
+		}else if (validated.getKind().belongsTo(SqlKind.QUERY)) {
 			return Optional.of(converter.convertSqlQuery(validated));
 		} else {
 			return Optional.empty();
@@ -187,6 +191,10 @@ public class SqlToOperationConverter {
 			query,
 			insert.getStaticPartitionKVs(),
 			insert.isOverwrite());
+	}
+
+	private Operation convertSqlShowTables() {
+		return new ShowTablesOperation();
 	}
 
 	//~ Tools ------------------------------------------------------------------

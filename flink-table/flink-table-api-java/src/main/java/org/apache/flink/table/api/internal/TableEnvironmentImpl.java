@@ -65,6 +65,7 @@ import org.apache.flink.table.operations.QueryOperation;
 import org.apache.flink.table.operations.TableSourceQueryOperation;
 import org.apache.flink.table.operations.ddl.CreateTableOperation;
 import org.apache.flink.table.operations.ddl.DropTableOperation;
+import org.apache.flink.table.operations.ddl.ShowTablesOperation;
 import org.apache.flink.table.operations.utils.OperationTreeBuilder;
 import org.apache.flink.table.sinks.TableSink;
 import org.apache.flink.table.sources.TableSource;
@@ -538,7 +539,7 @@ public class TableEnvironmentImpl implements TableEnvironment {
 				@Override
 				public TableSchema getResultSchema() {
 					return TableSchema.builder()
-									  .field("result", DataTypes.STRING()).build();
+									.field("result", DataTypes.STRING()).build();
 				}
 
 				@Override
@@ -546,6 +547,25 @@ public class TableEnvironmentImpl implements TableEnvironment {
 					Row row = new Row(1);
 					row.setField(0, String.format("Table %s drop success!", dropTableOperation.getTableIdentifier().toString()));
 					return Collections.singletonList(row);
+				}
+			});
+		} else if (operation instanceof ShowTablesOperation) {
+			List<Row> rows = catalogManager.getCatalog(catalogManager.getCurrentCatalog())
+										.get()
+										.listTables(catalogManager.getCurrentDatabase())
+										.stream().map( tableName -> { Row r = new Row(1); r.setField(0, tableName); return r;})
+										.collect(Collectors.toList());
+			return Optional.of(new ResultTable() {
+				@Override
+				public TableSchema getResultSchema() {
+					return TableSchema.builder()
+								.field(String.format("Tables in %s", catalogManager.getCurrentDatabase()), DataTypes.STRING())
+								.build();
+				}
+
+				@Override
+				public Iterable<Row> getResultRows() {
+					return rows;
 				}
 			});
 		} else if (operation instanceof QueryOperation) {
