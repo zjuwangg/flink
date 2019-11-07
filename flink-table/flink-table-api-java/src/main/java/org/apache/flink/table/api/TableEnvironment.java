@@ -94,6 +94,7 @@ public interface TableEnvironment {
 	 * Creates a table from a table source.
 	 *
 	 * @param source table source used as table
+	 * @deprecated Use {@link #connect(ConnectorDescriptor)} instead.
 	 */
 	Table fromTableSource(TableSource<?> source);
 
