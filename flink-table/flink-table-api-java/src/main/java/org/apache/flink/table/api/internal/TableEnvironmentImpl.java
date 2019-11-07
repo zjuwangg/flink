@@ -78,6 +78,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 /**
@@ -503,7 +504,7 @@ public class TableEnvironmentImpl implements TableEnvironment {
 
 		Operation operation = operations.get(0);
 
-		if (operation instanceof CatalogSinkModifyOperation) {
+		if (operation instanceof ModifyOperation) {
 			List<ModifyOperation> modifyOperations = Collections.singletonList((ModifyOperation) operation);
 			List<Transformation<?>> transformations = planner.translate(modifyOperations);
 			execEnv.apply(transformations);
@@ -573,9 +574,38 @@ public class TableEnvironmentImpl implements TableEnvironment {
 					"Unsupported QueryOperation for now!");
 		}else {
 			throw new TableException(
-					"Unsupported SQL query! sqlUpdate() only accepts a single SQL statements of " +
+					"Unsupported SQL query! executeSql() only accepts a single SQL statements of " +
 					"type INSERT, CREATE TABLE, DROP TABLE");
 		}
+	}
+
+	@Override
+	public void executeBatch(String... stmts) throws Exception {
+		List<List<Operation>> operationsList =
+				Arrays.stream(stmts).map(stmt -> parser.parse(stmt)).collect(Collectors.toList());
+		operationsList.forEach(operations -> {
+			if (operations.size() != 1) {
+				throw new TableException(
+						"Unsupported SQL query! executeBatch() only accepts a list SQL statements of type INSERT");
+			}
+			Operation operation = operations.get(0);
+			if (!(operation instanceof ModifyOperation)) {
+				throw new TableException(
+						"Unsupported SQL query! executeBatch() only accepts a list SQL statements of type INSERT");
+			}
+		});
+		operationsList.forEach(operations -> {
+			Operation operation = operations.get(0);
+			List<ModifyOperation> modifyOperations = Collections.singletonList((ModifyOperation) operation);
+			if (isEagerOperationTranslation()) {
+				translate(modifyOperations);
+			} else {
+				buffer(modifyOperations);
+			}
+		});
+		translate(bufferedModifyOperations);
+		bufferedModifyOperations.clear();
+		execEnv.execute("test-job");
 	}
 
 	@Override
@@ -622,6 +652,7 @@ public class TableEnvironmentImpl implements TableEnvironment {
 	 *
 	 * @return true if the queries should be translated immediately.
 	 */
+	//Todo: refactor this method to EnvironmentSettings config item.
 	protected boolean isEagerOperationTranslation() {
 		return false;
 	}

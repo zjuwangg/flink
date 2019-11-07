@@ -495,6 +495,8 @@ abstract class TableEnvImpl(
 
   override def executeSql(stmt: String): Optional[ResultTable] = ???
 
+  override def executeBatch(stmt: String*): Unit = ???
+
   protected def createTable(tableOperation: QueryOperation): TableImpl = {
     TableImpl.createTable(
       this,

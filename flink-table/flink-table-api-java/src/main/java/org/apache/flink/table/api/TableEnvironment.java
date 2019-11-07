@@ -661,6 +661,13 @@ public interface TableEnvironment {
 	Optional<ResultTable> executeSql(String stmt) throws Exception;
 
 	/**
+	 * Execute a batch
+	 * @param stmt
+	 * @throws Exception
+	 */
+	void executeBatch(String... stmt) throws Exception;
+
+	/**
 	 * Gets the current default catalog name of the current session.
 	 *
 	 * @return The current default catalog name that is used for the path resolution.

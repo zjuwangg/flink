@@ -79,7 +79,9 @@ class MockTableEnvironment extends TableEnvironment {
 
   override def executeSql(stmt: String): Optional[ResultTable] = ???
 
- override def getConfig: TableConfig = ???
+  override def executeBatch(stmt: String*): Unit = ???
+
+  override def getConfig: TableConfig = ???
 
   override def registerCatalog(
     name: String,
